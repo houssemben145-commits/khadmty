@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>روتيني</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 font-size=%2290%22><text y=%22.9em%22>🗓️</text></svg>">
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --text:#1c1e21; --muted:#6b7280;
+  --accent:#4f6df5; --accent2:#22c55e; --border:#e5e7eb; --danger:#ef4444;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171c; --card:#1f2229; --text:#eef0f3; --muted:#9aa1ad; --border:#2c303a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171c; --card:#1f2229; --text:#eef0f3; --muted:#9aa1ad; --border:#2c303a;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{box-sizing:border-box;}
+body{
+  height:100%; margin:0; background:var(--bg); color:var(--text);
+  font-family:'Tahoma','Segoe UI',system-ui,sans-serif;
+}
+.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:80px;}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+h1{font-size:22px;margin:0;}
+.tabs{display:flex;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:16px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:5;}
+.tab{flex:1;text-align:center;padding:9px 4px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);user-select:none;}
+.tab.active{background:var(--accent);color:#fff;font-weight:bold;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+input,select,textarea{
+  background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:10px;
+  padding:9px 10px;font-size:14px;flex:1;min-width:100px;font-family:inherit;
+}
+textarea{min-height:60px;resize:vertical;}
+button{
+  background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px 16px;
+  font-size:14px;cursor:pointer;font-weight:bold;
+}
+button.secondary{background:var(--border);color:var(--text);}
+button.danger{background:var(--danger);}
+button.ghost{background:transparent;color:var(--accent);padding:4px 8px;}
+.task{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:12px;padding:10px;margin-top:8px;}
+.task.done{opacity:.55;}
+.task .info{flex:1;}
+.task .title{font-weight:bold;font-size:15px;}
+.task .meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.check{width:22px;height:22px;flex-shrink:0;border-radius:6px;border:2px solid var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.check.on{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+.empty{color:var(--muted);text-align:center;padding:24px 0;font-size:14px;}
+.chartRow{display:flex;gap:6px;align-items:flex-end;height:140px;margin-top:10px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+.bar{width:70%;background:var(--border);border-radius:6px 6px 0 0;position:relative;overflow:hidden;display:flex;align-items:flex-end;}
+.bar-fill{width:100%;background:var(--accent2);}
+.bar-label{font-size:11px;color:var(--muted);margin-top:6px;}
+.bar-pct{font-size:10px;color:var(--muted);}
+.seg{display:flex;background:var(--bg);border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px;width:fit-content;}
+.seg button{background:transparent;color:var(--muted);border-radius:0;font-weight:normal;}
+.seg button.on{background:var(--accent);color:#fff;font-weight:bold;}
+.note{border:1px solid var(--border);border-radius:12px;padding:10px;margin-top:8px;}
+.note .meta{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.note img,.note video{max-width:100%;border-radius:10px;display:block;}
+.note audio{width:100%;}
+.rectxt{color:var(--danger);font-size:12px;}
+.fab-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.small{font-size:12px;color:var(--muted);}
+.badge{font-size:11px;background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:20px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🗓️ روتيني</h1>
+    <span id="notifStatus" class="badge"></span>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="tasks">المهام</div>
+    <div class="tab" data-tab="chart">التقدم</div>
+    <div class="tab" data-tab="notes">الملاحظات</div>
+  </div>
+
+  <!-- TASKS -->
+  <div id="tab-tasks">
+    <div class="card">
+      <div class="row">
+        <input id="tTitle" placeholder="اسم المهمة">
+        <select id="tCat">
+          <option value="عام">عام</option>
+          <option value="دراسة">دراسة</option>
+          <option value="عمل">عمل</option>
+          <option value="رياضة">رياضة</option>
+          <option value="صحة">صحة</option>
+        </select>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="tDate" type="date">
+        <input id="tTime" type="time">
+        <select id="tRepeat">
+          <option value="none">بدون تكرار</option>
+          <option value="daily">يوميًا</option>
+          <option value="weekly">أسبوعيًا</option>
+        </select>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button onclick="addTask()">➕ إضافة مهمة</button>
+        <button class="secondary" onclick="requestNotif()">🔔 تفعيل الإشعارات</button>
+      </div>
+    </div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- CHART -->
+  <div id="tab-chart" style="display:none">
+    <div class="card">
+      <div class="seg">
+        <button id="segWeek" class="on" onclick="setRange('week')">أسبوعي</button>
+        <button id="segMonth" onclick="setRange('month')">شهري</button>
+      </div>
+      <div id="chartArea" class="chartRow"></div>
+      <div class="small" id="chartSummary" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div id="tab-notes" style="display:none">
+    <div class="card">
+      <textarea id="noteText" placeholder="اكتب ملاحظة..."></textarea>
+      <div class="fab-row" style="margin-top:8px">
+        <button onclick="addTextNote()">💾 حفظ ملاحظة نصية</button>
+      </div>
+      <div class="fab-row">
+        <button id="voiceBtn" class="secondary" onclick="toggleVoice()">🎙️ تسجيل صوتي</button>
+        <label class="secondary" style="background:var(--border);border-radius:10px;padding:9px 16px;cursor:pointer;">
+          📷 صورة
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event,'image')">
+        </label>
+        <label class="secondary" style="background:var(--border);border-radius:10px;padding:9px 16px;cursor:pointer;">
+          🎬 فيديو
+          <input type="file" accept="video/*" capture="environment" style="display:none" onchange="handleFile(event,'video')">
+        </label>
+      </div>
+      <div id="voiceStatus" class="rectxt"></div>
+    </div>
+    <div id="noteList"></div>
+  </div>
+</div>
+
+<script>
+let state = { tasks: [], notes: [] };
+try{
+  const saved = localStorage.getItem('routineAppState');
+  if(saved) state = JSON.parse(saved);
+}catch(e){ console.error('تعذر تحميل البيانات المحفوظة', e); }
+
+function save(){
+  try{ localStorage.setItem('routineAppState', JSON.stringify(state)); }
+  catch(e){ console.error('تعذر حفظ البيانات', e); }
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    ['tasks','chart','notes'].forEach(id=>{
+      document.getElementById('tab-'+id).style.display = (id===t.dataset.tab)?'block':'none';
+    });
+    if(t.dataset.tab==='chart') renderChart();
+  };
+});
+
+// ---------- NOTIFICATIONS ----------
+function updateNotifBadge(){
+  const el = document.getElementById('notifStatus');
+  if(!('Notification' in window)){ el.textContent='الإشعارات غير مدعومة'; return; }
+  const p = Notification.permission;
+  el.textContent = p==='granted' ? '🔔 مفعلة' : (p==='denied' ? '🔕 مرفوضة' : '🔔 غير مفعلة');
+}
+function requestNotif(){
+  if(!('Notification' in window)){ alert('المتصفح لا يدعم الإشعارات'); return; }
+  Notification.requestPermission().then(updateNotifBadge);
+}
+function checkDueTasks(){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const now = new Date();
+  state.tasks.forEach(t=>{
+    if(t.done) return;
+    const due = new Date(t.date+'T'+(t.time||'00:00'));
+    const diff = due - now;
+    if(diff <= 0 && diff > -60000 && !t.notifiedAt){
+      new Notification('⏰ حان وقت: '+t.title, {body: t.category, tag:t.id});
+      t.notifiedAt = Date.now();
+      save();
+    }
+  });
+}
+setInterval(checkDueTasks, 20000);
+updateNotifBadge();
+
+// ---------- TASKS ----------
+function addTask(){
+  const title = document.getElementById('tTitle').value.trim();
+  const date = document.getElementById('tDate').value;
+  const time = document.getElementById('tTime').value;
+  if(!title || !date || !time){ alert('يرجى إدخال اسم المهمة والتاريخ والوقت'); return; }
+  state.tasks.push({
+    id: uid(), title, category: document.getElementById('tCat').value,
+    date, time, repeat: document.getElementById('tRepeat').value,
+    done:false, notifiedAt:null
+  });
+  document.getElementById('tTitle').value='';
+  save(); renderTasks();
+}
+function toggleDone(id){
+  const t = state.tasks.find(x=>x.id===id);
+  if(!t) return;
+  t.done = !t.done;
+  if(t.done && t.repeat!=='none'){
+    const d = new Date(t.date+'T'+t.time);
+    d.setDate(d.getDate() + (t.repeat==='daily'?1:7));
+    state.tasks.push({...t, id:uid(), date:d.toISOString().slice(0,10), done:false, notifiedAt:null});
+  }
+  save(); renderTasks();
+}
+function deleteTask(id){
+  state.tasks = state.tasks.filter(x=>x.id!==id);
+  save(); renderTasks();
+}
+function renderTasks(){
+  const list = document.getElementById('taskList');
+  const sorted = [...state.tasks].sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+  if(sorted.length===0){ list.innerHTML = '<div class="empty">لا توجد مهام بعد — أضف أول مهمة 👆</div>'; return; }
+  list.innerHTML = sorted.map(t=>`
+    <div class="task ${t.done?'done':''}">
+      <div class="check ${t.done?'on':''}" onclick="toggleDone('${t.id}')">${t.done?'✓':''}</div>
+      <div class="info">
+        <div class="title">${esc(t.title)}</div>
+        <div class="meta">${esc(t.category)} · ${t.date} ⏰ ${t.time} ${t.repeat!=='none'?'· 🔁 '+(t.repeat==='daily'?'يومي':'أسبوعي'):''}</div>
+      </div>
+      <button class="ghost" onclick="deleteTask('${t.id}')">🗑️</button>
+    </div>`).join('');
+}
+function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+// ---------- CHART ----------
+let range = 'week';
+function setRange(r){
+  range = r;
+  document.getElementById('segWeek').classList.toggle('on', r==='week');
+  document.getElementById('segMonth').classList.toggle('on', r==='month');
+  renderChart();
+}
+function renderChart(){
+  const area = document.getElementById('chartArea');
+  const today = new Date(); today.setHours(0,0,0,0);
+  let buckets = [];
+  if(range==='week'){
+    for(let i=6;i>=0;i--){
+      const d = new Date(today); d.setDate(d.getDate()-i);
+      buckets.push({label:d.toLocaleDateString('ar',{weekday:'short'}), key:d.toISOString().slice(0,10), from:d, to:d});
+    }
+  } else {
+    for(let i=3;i>=0;i--){
+      const to = new Date(today); to.setDate(to.getDate()-i*7);
+      const from = new Date(to); from.setDate(from.getDate()-6);
+      buckets.push({label:'أسبوع '+(4-i), from, to});
+    }
+  }
+  let totalAll=0, doneAll=0;
+  const html = buckets.map(b=>{
+    const inRange = state.tasks.filter(t=>{
+      const d = new Date(t.date); d.setHours(0,0,0,0);
+      return d>=b.from && d<=b.to;
+    });
+    const total = inRange.length;
+    const done = inRange.filter(t=>t.done).length;
+    totalAll+=total; doneAll+=done;
+    const pct = total? Math.round(done/total*100) : 0;
+    return `<div class="bar-col">
+      <div class="bar-pct">${total?pct+'%':''}</div>
+      <div class="bar" style="height:${total? Math.max(pct,4):2}%;">
+        <div class="bar-fill" style="height:100%"></div>
+      </div>
+      <div class="bar-label">${b.label}</div>
+    </div>`;
+  }).join('');
+  area.innerHTML = html;
+  document.getElementById('chartSummary').textContent = totalAll
+    ? `أنجزت ${doneAll} من ${totalAll} مهمة (${Math.round(doneAll/totalAll*100)}%) خلال هذه الفترة.`
+    : 'لا توجد مهام مسجلة في هذه الفترة بعد.';
+}
+
+// ---------- NOTES ----------
+function addTextNote(){
+  const val = document.getElementById('noteText').value.trim();
+  if(!val) return;
+  state.notes.unshift({id:uid(), type:'text', content:val, createdAt:Date.now()});
+  document.getElementById('noteText').value='';
+  save(); renderNotes();
+}
+function handleFile(ev, type){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    state.notes.unshift({id:uid(), type, content:reader.result, createdAt:Date.now(), name:file.name});
+    save(); renderNotes();
+  };
+  reader.onerror = ()=> alert('تعذر قراءة الملف');
+  reader.readAsDataURL(file);
+  ev.target.value='';
+}
+let mediaRecorder=null, chunks=[], recording=false, mediaStream=null;
+function toggleVoice(){
+  if(!recording) startVoice(); else stopVoice();
+}
+async function startVoice(){
+  const status = document.getElementById('voiceStatus');
+  if(!navigator.mediaDevices || !window.MediaRecorder){ status.textContent='التسجيل الصوتي غير مدعوم في هذا المتصفح'; return; }
+  try{
+    mediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks = [];
+    mediaRecorder = new MediaRecorder(mediaStream);
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.onstop = ()=>{
+      const blob = new Blob(chunks, {type:'audio/webm'});
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        state.notes.unshift({id:uid(), type:'audio', content:reader.result, createdAt:Date.now()});
+        save(); renderNotes();
+      };
+      reader.readAsDataURL(blob);
+      mediaStream.getTracks().forEach(t=>t.stop());
+    };
+    mediaRecorder.start();
+    recording = true;
+    document.getElementById('voiceBtn').textContent = '⏹️ إيقاف التسجيل';
+    status.textContent = 'جارٍ التسجيل...';
+  }catch(e){
+    status.textContent = 'تعذر الوصول إلى الميكروفون (تحقق من الأذونات)';
+  }
+}
+function stopVoice(){
+  if(mediaRecorder && recording){
+    mediaRecorder.stop();
+    recording = false;
+    document.getElementById('voiceBtn').textContent = '🎙️ تسجيل صوتي';
+    document.getElementById('voiceStatus').textContent = 'تم الحفظ ✅';
+  }
+}
+function deleteNote(id){
+  state.notes = state.notes.filter(n=>n.id!==id);
+  save(); renderNotes();
+}
+function renderNotes(){
+  const list = document.getElementById('noteList');
+  if(state.notes.length===0){ list.innerHTML = '<div class="empty">لا توجد ملاحظات بعد</div>'; return; }
+  list.innerHTML = state.notes.map(n=>{
+    const date = new Date(n.createdAt).toLocaleString('ar');
+    let body='';
+    if(n.type==='text') body = `<div>${esc(n.content)}</div>`;
+    else if(n.type==='image') body = `<img src="${n.content}">`;
+    else if(n.type==='video') body = `<video src="${n.content}" controls></video>`;
+    else if(n.type==='audio') body = `<audio src="${n.content}" controls></audio>`;
+    return `<div class="note">
+      <div class="meta">${date} · ${n.type==='text'?'📝 نص':n.type==='image'?'📷 صورة':n.type==='video'?'🎬 فيديو':'🎙️ صوت'}
+        <button class="ghost" style="float:left" onclick="deleteNote('${n.id}')">🗑️</button>
+      </div>
+      ${body}
+    </div>`;
+  }).join('');
+}
+
+// ---------- INIT ----------
+(function init(){
+  const now = new Date();
+  document.getElementById('tDate').value = now.toISOString().slice(0,10);
+  renderTasks();
+  renderNotes();
+})();
+</script>
+</body>
+</html>
